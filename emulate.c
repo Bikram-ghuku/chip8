@@ -28,6 +28,9 @@ uint32_t display[64 * 32] = {0};
 
 // internal
 int cont = 1;
+int draw = 1;
+#define WINDOW_HEIGHT 320
+#define WINDOW_WIDTH 640
 
 //font
 const char font[] = {
@@ -125,6 +128,7 @@ void do_instruct(){
             switch(op_code & 0x000F){
                 case 0x0000: // CLS
                     for (int i = 0; i < 64 * 32; i++) display[i] = 0;
+                    draw = 1;
                     break;
                 case 0x000E: // RET
                     pc = *sp;
@@ -254,16 +258,20 @@ void do_instruct(){
             x = (op_code & 0x0F00) >> 8;
             y = (op_code & 0x00F0) >> 4;
             int n = (op_code & 0x000F);
-            uint8_t pixel = ram[I + 1];
             for(int i = 0; i < n; i++){
-
+                uint8_t pixel8 = ram[I + i];
+                for (int j = 0; j < 8; j++) {
+                    if ((display[(V[y] + i) * 64 + V[x] + j] == 1) &&(pixel8 >> (7 - j) == 1))  V[0xF] = 1;
+                    display[(V[y] + i) * 64 + V[x] + j] ^= (pixel8 >> (7 - j)) & 1;
+                }
             }
+            draw = 1;
             break;
 
         case 0xE:
+            x = (op_code & 0x0F00);
             switch(op_code & 0x000F){
                 case 0x000E: // SKP Vx
-                    x = (op_code & 0x0F00);
                     if(keypad[V[x]] == 1) pc += 2;
                     break;
                 case 0x0001: // SKNP Vx
@@ -283,7 +291,7 @@ void do_instruct(){
                 case 0x000A: // LD Vx, K
                     for(int i = 0; i < 16; i++){
                         if(keypad[i] == 1){
-                            V[x] == i;
+                            V[x] = i;
                             pc += 2;
                             break;
                         }
@@ -348,22 +356,39 @@ int main(int argc, char** argv){
         printf("memory[%03X] = %02X \n", i, ram[i]);
     }
 
-    for(int i = 0; i < 0x1FF; i++){
-        ram[i] = font[i];
-    }
+    for (int i = 0; i < sizeof(font); i++)  ram[i] = font[i];
 
     pc = 0x200;
 
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    SDL_Window* win = SDL_CreateWindow(strcat(argv[1], " - Chip8"), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 320, 0);
+    SDL_Window* win = SDL_CreateWindow(strcat(argv[1], " - Chip8"), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
     SDL_Renderer* rendered = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
 
-    clear_screen(rendered);
+    //clear_screen(rendered);
+
     while(cont){
         for(int i = 0; i < 60; i++) do_instruct();
-
+        
         SDL_Delay(1000 / 60);
+        if(draw == 1){
+            for (int i = 0; i < 64 * 32; i++) {
+                SDL_Rect pixel = {.x = i % WINDOW_WIDTH, .y = i / WINDOW_WIDTH, .w = WINDOW_WIDTH / 64, .h = WINDOW_HEIGHT / 32};
+                if (display[i]) {
+                    SDL_SetRenderDrawColor(rendered, 255, 255, 255, 255);
+                    SDL_RenderFillRect(rendered, &pixel);
+                } else {
+                    SDL_SetRenderDrawColor(rendered, 0, 0, 0, 0);
+                    SDL_RenderFillRect(rendered, &pixel);
+                }
+            }
+            
+            
+            SDL_RenderPresent(rendered);
+
+            draw = 0;
+
+        }
 
         handleEvent();
 
