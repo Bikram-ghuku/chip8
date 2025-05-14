@@ -136,32 +136,32 @@ void do_instruct(){
             break;
 
         case 0x4: // SNE Vx, byte
-            int x = (op_code & 0x0F00) >> 8;
-            int kk = (op_code & 0x00FF);
+            x = (op_code & 0x0F00) >> 8;
+            kk = (op_code & 0x00FF);
             if(V[x] != kk) pc += 2;
             break; 
 
         case 0x5: // SE Vx, Vy
-            int x = (op_code & 0x0F00) >> 8;
+            x = (op_code & 0x0F00) >> 8;
             int y = (op_code & 0x00F0) >> 4;
             if(V[x] == V[y]) pc += 2;
             break;
 
         case 0x6: // LD Vx, byte
-            int x = (op_code & 0x0F00) >> 8;
-            int kk = (op_code & 0x00FF);
+            x = (op_code & 0x0F00) >> 8;
+            kk = (op_code & 0x00FF);
             V[x] = kk;
             break;
 
         case 0x7: // ADD Vx, byte
-            int x = (op_code & 0x0F00) >> 8;
-            int kk = (op_code & 0x00FF);
+            x = (op_code & 0x0F00) >> 8;
+            kk = (op_code & 0x00FF);
             V[x] += kk;
             break;
 
         case 0x8:
-            int x = (op_code & 0x0F00) >> 8;
-            int y = (op_code & 0x00F0) >> 4;
+            x = (op_code & 0x0F00) >> 8;
+            y = (op_code & 0x00F0) >> 4;
             switch (op_code & 0x000F){
                 case 0x0: // LD Vx, Vy
                     V[x] = V[y];
@@ -213,8 +213,8 @@ void do_instruct(){
             break;
 
             case 0x9: // SNE Vx, Vy
-                int x = (op_code & 0x0F00) >> 8;
-                int y = (op_code & 0x00F0) >> 4;
+                x = (op_code & 0x0F00) >> 8;
+                y = (op_code & 0x00F0) >> 4;
                 if(V[x] != V[y]) pc += 2;
                 break;
 
