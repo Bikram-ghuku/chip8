@@ -116,16 +116,116 @@ void clear_screen(SDL_Renderer *rendrer){
     SDL_RenderClear(rendrer);
 }
 
-void read_instruct(FILE* file){
-    size_t read_bytes = fread(ram + 0x200, 1, sizeof(ram) - 0x200, file);
-    for(int i = 0x200; i < read_bytes + 0x200; i += 1){
-        printf("memory[%03X] = %02X \n", i, ram[i]);
-    }
-
-    pc = 0x200;
-
+void do_instruct(){
     uint16_t op_code = ram[pc] << 8 | ram[pc + 1];
     
+    uint8_t type = (op_code & 0xF000) >> 12;
+    switch(type){
+        case 0x1:  // (1nnn) JP addr - Jump to location nnn.
+            pc = (op_code & 0x0FFF); break;
+        case 0x2: // (2nnn) CALL addr - Call subroutine at nnn.
+            sp++;
+            *sp = pc;
+            pc = (op_code & 0x0FFF);
+            break;
+
+        case 0x3: // SE Vx, byte
+            int x = (op_code & 0x0F00) >> 8;
+            int kk = (op_code & 0x00FF);
+            if(V[x] == kk) pc += 2;
+            break;
+
+        case 0x4: // SNE Vx, byte
+            int x = (op_code & 0x0F00) >> 8;
+            int kk = (op_code & 0x00FF);
+            if(V[x] != kk) pc += 2;
+            break; 
+
+        case 0x5: // SE Vx, Vy
+            int x = (op_code & 0x0F00) >> 8;
+            int y = (op_code & 0x00F0) >> 4;
+            if(V[x] == V[y]) pc += 2;
+            break;
+
+        case 0x6: // LD Vx, byte
+            int x = (op_code & 0x0F00) >> 8;
+            int kk = (op_code & 0x00FF);
+            V[x] = kk;
+            break;
+
+        case 0x7: // ADD Vx, byte
+            int x = (op_code & 0x0F00) >> 8;
+            int kk = (op_code & 0x00FF);
+            V[x] += kk;
+            break;
+
+        case 0x8:
+            int x = (op_code & 0x0F00) >> 8;
+            int y = (op_code & 0x00F0) >> 4;
+            switch (op_code & 0x000F){
+                case 0x0: // LD Vx, Vy
+                    V[x] = V[y];
+                    break;
+
+                case 0x1: // OR Vx, Vy
+                    V[x] |= V[y];
+                    break;
+
+                case 0x2: // AND Vx, Vy
+                    V[x] &= V[y];
+                    break;
+
+                case 0x3: // XOR Vx, Vy
+                    V[x] ^= V[y];
+                    break;
+
+                case 0x4: // ADD Vx, Vy
+                    V[x] += V[y];
+                    if(V[x] > 255) V[0xF] = 1;
+                    else V[0xF] = 0;
+                    V[x] &= 0xFF;
+                    break;
+
+                case 0x5:// SUB Vx, Vy
+                    if (V[x] > V[y]) V[0xF] = 1;
+                    else V[0xF] = 0;
+                    V[x] -= V[y];
+                    break;
+
+                case 0x6: // SHR Vx {, Vy}
+                    V[0xF] = V[x] & 0x1;
+                    V[x] /= 2;
+                    break;
+
+                case 0x7: // SUBN Vx, Vy
+                    if(V[y] > V[x]) V[0xF] = 1;
+                    else V[0xF] = 0;
+                    V[x] -= V[y];
+                    break;
+
+                case 0xE: // SHL Vx {, Vy}
+                    V[0xF] = (V[x] & 0x80) >> 7;
+                    V[x] *= 2;
+                    break;
+
+                default: break;
+            }
+            break;
+
+            case 0x9: // SNE Vx, Vy
+                int x = (op_code & 0x0F00) >> 8;
+                int y = (op_code & 0x00F0) >> 4;
+                if(V[x] != V[y]) pc += 2;
+                break;
+
+            case 0xA: // LD I, addr
+                int nnn = (op_code & 0x0FFF);
+                I = nnn;
+                break;
+
+            
+        default: break;
+    }
 }
 
 int main(int argc, char** argv){
@@ -139,11 +239,16 @@ int main(int argc, char** argv){
 
     FILE *file = fopen(argv[1], "rb");
 
-    read_instruct(file);
-
     if (!file) {
         printf(" ROM File is invalid\n");
     }
+
+    size_t read_bytes = fread(ram + 0x200, 1, sizeof(ram) - 0x200, file);
+    for(int i = 0x200; i < read_bytes + 0x200; i += 1){
+        printf("memory[%03X] = %02X \n", i, ram[i]);
+    }
+
+    pc = 0x200;
 
     SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -152,6 +257,8 @@ int main(int argc, char** argv){
 
     clear_screen(rendered);
     while(cont){
+        for(int i = 0; i < 60; i++) do_instruct();
+
         SDL_Delay(1000 / 60);
 
         handleEvent();
