@@ -7,6 +7,7 @@
 #include<string.h>
 #include<SDL2/SDL.h>
 #include<SDL2/SDL_render.h>
+#include <SDL2/SDL_timer.h>
 
 // Memory
 uint8_t ram[4096] = {0};
@@ -25,6 +26,10 @@ uint32_t keypad[16] = {0};
 // Display
 uint32_t display[64 * 32] = {0};
 
+// internal
+int cont = 1;
+
+//font
 const char font[] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0,
     0x20, 0x60, 0x20, 0x20, 0x70,
@@ -43,6 +48,68 @@ const char font[] = {
     0xF0, 0x80, 0xF0, 0x80, 0xF0, 
     0xF0, 0x80, 0xF0, 0x80, 0x80 
 };
+
+void handleEvent(){
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        switch(event.type){
+            case SDL_QUIT: cont = 0; break;
+            case SDL_KEYDOWN:
+                switch(event.key.keysym.scancode){
+                    case SDL_SCANCODE_0: keypad[0] = 1; break;
+                    case SDL_SCANCODE_1: keypad[1] = 1; break;
+                    case SDL_SCANCODE_2: keypad[2] = 1; break;
+                    case SDL_SCANCODE_3: keypad[3] = 1; break;
+
+                    case SDL_SCANCODE_Q: keypad[4] = 1; break;
+                    case SDL_SCANCODE_W: keypad[5] = 1; break;
+                    case SDL_SCANCODE_E: keypad[6] = 1; break;
+                    case SDL_SCANCODE_R: keypad[7] = 1; break;
+
+                    case SDL_SCANCODE_A: keypad[8] = 1; break;
+                    case SDL_SCANCODE_S: keypad[9] = 1; break;
+                    case SDL_SCANCODE_D: keypad[10] = 1; break;
+                    case SDL_SCANCODE_F: keypad[11] = 1; break;
+
+                    case SDL_SCANCODE_Z: keypad[12] = 1; break;
+                    case SDL_SCANCODE_X: keypad[13] = 1; break;
+                    case SDL_SCANCODE_C: keypad[14] = 1; break;
+                    case SDL_SCANCODE_V: keypad[15] = 1; break;
+
+                    default: break;
+                }
+                break;
+
+            case SDL_KEYUP:
+                switch(event.key.keysym.scancode){
+                    case SDL_SCANCODE_0: keypad[0] = 0; break;
+                    case SDL_SCANCODE_1: keypad[1] = 0; break;
+                    case SDL_SCANCODE_2: keypad[2] = 0; break;
+                    case SDL_SCANCODE_3: keypad[3] = 0; break;
+
+                    case SDL_SCANCODE_Q: keypad[4] = 0; break;
+                    case SDL_SCANCODE_W: keypad[5] = 0; break;
+                    case SDL_SCANCODE_E: keypad[6] = 0; break;
+                    case SDL_SCANCODE_R: keypad[7] = 0; break;
+
+                    case SDL_SCANCODE_A: keypad[8] = 0; break;
+                    case SDL_SCANCODE_S: keypad[9] = 0; break;
+                    case SDL_SCANCODE_D: keypad[10] = 0; break;
+                    case SDL_SCANCODE_F: keypad[11] = 0; break;
+
+                    case SDL_SCANCODE_Z: keypad[12] = 0; break;
+                    case SDL_SCANCODE_X: keypad[13] = 0; break;
+                    case SDL_SCANCODE_C: keypad[14] = 0; break;
+                    case SDL_SCANCODE_V: keypad[15] = 0; break;
+
+                    default: break;
+                }
+                break;
+
+            default: break;
+        }
+    }
+}
 
 int main(int argc, char** argv){
 
@@ -64,6 +131,8 @@ int main(int argc, char** argv){
     SDL_Window* win = SDL_CreateWindow(strcat(argv[1], " - Chip8"), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 320, 0);
     SDL_Renderer* rendered = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
 
-    int x; scanf("%d", &x);
+    while(cont){
+        handleEvent();
+    }
     return 0;
 }
