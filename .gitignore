@@ -1,2 +1,5 @@
 *.out
 *.exe
+*.ch8
+!Airplane.ch8
+!hbd.ch8
