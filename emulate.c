@@ -111,6 +111,11 @@ void handleEvent(){
     }
 }
 
+void clear_screen(SDL_Renderer *rendrer){
+    SDL_SetRenderDrawColor(rendrer, 0, 0, 255, 100);
+    SDL_RenderClear(rendrer);
+}
+
 int main(int argc, char** argv){
 
     srand(time(0));
@@ -131,8 +136,19 @@ int main(int argc, char** argv){
     SDL_Window* win = SDL_CreateWindow(strcat(argv[1], " - Chip8"), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 320, 0);
     SDL_Renderer* rendered = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
 
+    clear_screen(rendered);
     while(cont){
+        SDL_Delay(1000 / 60);
+
         handleEvent();
+
+        if(delay > 0) delay--;
+        if(sound > 0) sound--;
     }
+
+
+    SDL_DestroyRenderer(rendered);
+    SDL_DestroyWindow(win);
+    SDL_Quit();
     return 0;
 }
