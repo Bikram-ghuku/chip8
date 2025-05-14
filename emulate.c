@@ -116,6 +116,18 @@ void clear_screen(SDL_Renderer *rendrer){
     SDL_RenderClear(rendrer);
 }
 
+void read_instruct(FILE* file){
+    size_t read_bytes = fread(ram + 0x200, 1, sizeof(ram) - 0x200, file);
+    for(int i = 0x200; i < read_bytes + 0x200; i += 1){
+        printf("memory[%03X] = %02X \n", i, ram[i]);
+    }
+
+    pc = 0x200;
+
+    uint16_t op_code = ram[pc] << 8 | ram[pc + 1];
+    
+}
+
 int main(int argc, char** argv){
 
     srand(time(0));
@@ -126,6 +138,8 @@ int main(int argc, char** argv){
     }
 
     FILE *file = fopen(argv[1], "rb");
+
+    read_instruct(file);
 
     if (!file) {
         printf(" ROM File is invalid\n");
