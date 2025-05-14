@@ -121,8 +121,23 @@ void do_instruct(){
     
     uint8_t type = (op_code & 0xF000) >> 12;
     switch(type){
+        case 0x0:
+            switch(op_code & 0x000F){
+                case 0x0000: // CLS
+                    for (int i = 0; i < 64 * 32; i++) display[i] = 0;
+                    break;
+                case 0x000E: // RET
+                    pc = *sp;
+                    sp--;
+                    break;
+                default:
+                    break;
+            }
+            break;
+
         case 0x1:  // (1nnn) JP addr - Jump to location nnn.
             pc = (op_code & 0x0FFF); break;
+
         case 0x2: // (2nnn) CALL addr - Call subroutine at nnn.
             sp++;
             *sp = pc;
@@ -212,18 +227,103 @@ void do_instruct(){
             }
             break;
 
-            case 0x9: // SNE Vx, Vy
-                x = (op_code & 0x0F00) >> 8;
-                y = (op_code & 0x00F0) >> 4;
-                if(V[x] != V[y]) pc += 2;
-                break;
+        case 0x9: // SNE Vx, Vy
+            x = (op_code & 0x0F00) >> 8;
+            y = (op_code & 0x00F0) >> 4;
+            if(V[x] != V[y]) pc += 2;
+            break;
 
-            case 0xA: // LD I, addr
-                int nnn = (op_code & 0x0FFF);
-                I = nnn;
-                break;
+        case 0xA: // LD I, addr
+            int nnn = (op_code & 0x0FFF);
+            I = nnn;
+            break;
 
-            
+        case 0xB: // JP V0, addr
+            nnn = (op_code & 0x0FFF);
+            pc = V[0] + nnn;
+            break;
+        
+        case 0xC: // RND Vx, byte
+            x = (op_code & 0x0F00) >> 8;
+            kk = (op_code & 0x00FF);
+            uint8_t random = rand();
+            V[x] = random & kk;
+            break;
+
+        case 0xD: // DRW Vx, Vy, nibble
+            x = (op_code & 0x0F00) >> 8;
+            y = (op_code & 0x00F0) >> 4;
+            int n = (op_code & 0x000F);
+            uint8_t pixel = ram[I + 1];
+            for(int i = 0; i < n; i++){
+
+            }
+            break;
+
+        case 0xE:
+            switch(op_code & 0x000F){
+                case 0x000E: // SKP Vx
+                    x = (op_code & 0x0F00);
+                    if(keypad[V[x]] == 1) pc += 2;
+                    break;
+                case 0x0001: // SKNP Vx
+                    if(keypad[V[x]] == 0) pc += 2;
+                    break;
+                default: break;
+            }
+            break;
+
+        case 0xF:
+            x = (op_code & 0x0F00) >> 8;
+            switch(op_code & 0x00FF){
+                case 0x0007: // LD Vx, DT
+                    V[x] = delay; 
+                    break;
+
+                case 0x000A: // LD Vx, K
+                    for(int i = 0; i < 16; i++){
+                        if(keypad[i] == 1){
+                            V[x] == i;
+                            pc += 2;
+                            break;
+                        }
+                    }
+                    break;
+
+                case 0x0015: // LD DT, Vx
+                    delay = V[x];
+                    break;
+
+                case 0x0018: // LD ST, Vx
+                    sound = V[x];
+                    break;
+                
+                case 0x001E: // ADD I, Vx
+                    I += V[x];
+                    break;
+
+                case 0x0029: // LD F, Vx
+                    I = ram[5 * V[x]];
+                    break;
+
+                case 0x0033: // LD B, Vx
+                    ram[I + 2] = V[x] % 10;
+                    ram[I + 1] = (V[x] / 10) % 10;
+                    ram[I] = (V[x] / 100);
+                    break;
+
+                case 0x0055: // LD [I], Vx
+                    for(int i = 0; i <= x; i++) ram[I + i] = V[i];
+                    break;
+
+                case 0x0065: // LD Vx, [I]
+                    for(int i = 0; i <= x; i++) V[i] = ram[I + i];
+                    break;
+
+                default: break;
+            }
+            break;
+        
         default: break;
     }
 }
@@ -246,6 +346,10 @@ int main(int argc, char** argv){
     size_t read_bytes = fread(ram + 0x200, 1, sizeof(ram) - 0x200, file);
     for(int i = 0x200; i < read_bytes + 0x200; i += 1){
         printf("memory[%03X] = %02X \n", i, ram[i]);
+    }
+
+    for(int i = 0; i < 0x1FF; i++){
+        ram[i] = font[i];
     }
 
     pc = 0x200;
