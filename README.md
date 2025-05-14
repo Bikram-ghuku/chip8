@@ -24,7 +24,7 @@ An attempt at building a CHIP-8 emulator using C and SDL2.
 1) Build using gcc
 
     ```sh
-        gcc emulate.c -lSDL2 -lSDL2main chip8
+        gcc emulate.c -lSDL2 -lSDL2main -o chip8
     ```
 
 ### Running
