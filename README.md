@@ -38,5 +38,5 @@ An attempt at building a CHIP-8 emulator using C and SDL2.
 
     WSL on windows
     ```ps
-        LIBGL_ALWAYS_SOFTWARE=1 ./chip8 <name-of-rom>
+        LIBGL_ALWAYS_SOFTWARE=1 ./chip8 'name-of-rom'
     ```
