@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include<string.h>
+#include<SDL2/SDL.h>
+#include<SDL2/SDL_render.h>
 
 // Memory
 uint8_t ram[4096] = {0};
@@ -43,5 +46,24 @@ const char font[] = {
 
 int main(int argc, char** argv){
 
+    srand(time(0));
 
+    if (argc < 2) {
+        printf(" NO ROM PASSED\n");
+        exit(EXIT_FAILURE);
+    }
+
+    FILE *file = fopen(argv[1], "rb");
+
+    if (!file) {
+        printf(" ROM File is invalid\n");
+    }
+
+    SDL_Init(SDL_INIT_EVERYTHING);
+
+    SDL_Window* win = SDL_CreateWindow(strcat(argv[1], " - Chip8"), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 320, 0);
+    SDL_Renderer* rendered = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+
+    int x; scanf("%d", &x);
+    return 0;
 }
