@@ -121,7 +121,7 @@ void clear_screen(SDL_Renderer *rendrer){
 
 void do_instruct(){
     uint16_t op_code = ram[pc] << 8 | ram[pc + 1];
-    
+    printf("0x%04X\n", op_code);
     uint8_t type = (op_code & 0xF000) >> 12;
     switch(type){
         case 0x0:
@@ -129,6 +129,7 @@ void do_instruct(){
                 case 0x0000: // CLS
                     for (int i = 0; i < 64 * 32; i++) display[i] = 0;
                     draw = 1;
+                    pc += 2;
                     break;
                 case 0x000E: // RET
                     pc = *sp;
@@ -144,7 +145,7 @@ void do_instruct(){
 
         case 0x2: // (2nnn) CALL addr - Call subroutine at nnn.
             sp++;
-            *sp = pc;
+            *sp = pc + 2;
             pc = (op_code & 0x0FFF);
             break;
 
@@ -152,31 +153,34 @@ void do_instruct(){
             int x = (op_code & 0x0F00) >> 8;
             int kk = (op_code & 0x00FF);
             if(V[x] == kk) pc += 2;
+            pc += 2;
             break;
 
         case 0x4: // SNE Vx, byte
             x = (op_code & 0x0F00) >> 8;
             kk = (op_code & 0x00FF);
             if(V[x] != kk) pc += 2;
+            pc += 2;
             break; 
 
         case 0x5: // SE Vx, Vy
             x = (op_code & 0x0F00) >> 8;
             int y = (op_code & 0x00F0) >> 4;
             if(V[x] == V[y]) pc += 2;
+            pc += 2;
             break;
 
         case 0x6: // LD Vx, byte
             x = (op_code & 0x0F00) >> 8;
             kk = (op_code & 0x00FF);
             V[x] = kk;
-            break;
+            pc += 2;break;
 
         case 0x7: // ADD Vx, byte
             x = (op_code & 0x0F00) >> 8;
             kk = (op_code & 0x00FF);
             V[x] += kk;
-            break;
+            pc += 2; break;
 
         case 0x8:
             x = (op_code & 0x0F00) >> 8;
@@ -184,48 +188,48 @@ void do_instruct(){
             switch (op_code & 0x000F){
                 case 0x0: // LD Vx, Vy
                     V[x] = V[y];
-                    break;
+                    pc += 2; break;
 
                 case 0x1: // OR Vx, Vy
                     V[x] |= V[y];
-                    break;
+                    pc += 2;break;
 
                 case 0x2: // AND Vx, Vy
                     V[x] &= V[y];
-                    break;
+                    pc += 2;break;
 
                 case 0x3: // XOR Vx, Vy
                     V[x] ^= V[y];
-                    break;
+                    pc += 2;break;
 
                 case 0x4: // ADD Vx, Vy
                     V[x] += V[y];
                     if(V[x] > 255) V[0xF] = 1;
                     else V[0xF] = 0;
                     V[x] &= 0xFF;
-                    break;
+                    pc += 2;break;
 
                 case 0x5:// SUB Vx, Vy
                     if (V[x] > V[y]) V[0xF] = 1;
                     else V[0xF] = 0;
                     V[x] -= V[y];
-                    break;
+                    pc += 2; break;
 
                 case 0x6: // SHR Vx {, Vy}
                     V[0xF] = V[x] & 0x1;
                     V[x] /= 2;
-                    break;
+                    pc += 2; break;
 
                 case 0x7: // SUBN Vx, Vy
                     if(V[y] > V[x]) V[0xF] = 1;
                     else V[0xF] = 0;
                     V[x] -= V[y];
-                    break;
+                    pc += 2; break;
 
                 case 0xE: // SHL Vx {, Vy}
                     V[0xF] = (V[x] & 0x80) >> 7;
                     V[x] *= 2;
-                    break;
+                    pc += 2; break;
 
                 default: break;
             }
@@ -234,12 +238,14 @@ void do_instruct(){
         case 0x9: // SNE Vx, Vy
             x = (op_code & 0x0F00) >> 8;
             y = (op_code & 0x00F0) >> 4;
+            pc += 2;
             if(V[x] != V[y]) pc += 2;
             break;
 
         case 0xA: // LD I, addr
             int nnn = (op_code & 0x0FFF);
             I = nnn;
+            pc += 2;
             break;
 
         case 0xB: // JP V0, addr
@@ -252,6 +258,7 @@ void do_instruct(){
             kk = (op_code & 0x00FF);
             uint8_t random = rand();
             V[x] = random & kk;
+            pc += 2;
             break;
 
         case 0xD: // DRW Vx, Vy, nibble
@@ -266,6 +273,7 @@ void do_instruct(){
                 }
             }
             draw = 1;
+            pc += 2;
             break;
 
         case 0xE:
@@ -273,9 +281,11 @@ void do_instruct(){
             switch(op_code & 0x000F){
                 case 0x000E: // SKP Vx
                     if(keypad[V[x]] == 1) pc += 2;
+                    pc += 2;
                     break;
                 case 0x0001: // SKNP Vx
                     if(keypad[V[x]] == 0) pc += 2;
+                    pc += 2;
                     break;
                 default: break;
             }
@@ -286,6 +296,7 @@ void do_instruct(){
             switch(op_code & 0x00FF){
                 case 0x0007: // LD Vx, DT
                     V[x] = delay; 
+                    pc += 2;
                     break;
 
                 case 0x000A: // LD Vx, K
@@ -300,32 +311,39 @@ void do_instruct(){
 
                 case 0x0015: // LD DT, Vx
                     delay = V[x];
+                    pc += 2;
                     break;
 
                 case 0x0018: // LD ST, Vx
                     sound = V[x];
+                    pc += 2;
                     break;
                 
                 case 0x001E: // ADD I, Vx
                     I += V[x];
+                    pc += 2;
                     break;
 
                 case 0x0029: // LD F, Vx
                     I = ram[5 * V[x]];
+                    pc += 2;
                     break;
 
                 case 0x0033: // LD B, Vx
                     ram[I + 2] = V[x] % 10;
                     ram[I + 1] = (V[x] / 10) % 10;
                     ram[I] = (V[x] / 100);
+                    pc += 2;
                     break;
 
                 case 0x0055: // LD [I], Vx
                     for(int i = 0; i <= x; i++) ram[I + i] = V[i];
+                    pc += 2;
                     break;
 
                 case 0x0065: // LD Vx, [I]
                     for(int i = 0; i <= x; i++) V[i] = ram[I + i];
+                    pc += 2;
                     break;
 
                 default: break;
@@ -373,12 +391,12 @@ int main(int argc, char** argv){
         SDL_Delay(1000 / 60);
         if(draw == 1){
             for (int i = 0; i < 64 * 32; i++) {
-                SDL_Rect pixel = {.x = i % WINDOW_WIDTH, .y = i / WINDOW_WIDTH, .w = WINDOW_WIDTH / 64, .h = WINDOW_HEIGHT / 32};
+                SDL_Rect pixel = {.x = (i % 64) * (WINDOW_WIDTH / 64), .y = (i / 64) * (WINDOW_HEIGHT / 32), .w = WINDOW_WIDTH / 64, .h = WINDOW_HEIGHT / 32};
                 if (display[i]) {
                     SDL_SetRenderDrawColor(rendered, 255, 255, 255, 255);
                     SDL_RenderFillRect(rendered, &pixel);
                 } else {
-                    SDL_SetRenderDrawColor(rendered, 0, 0, 0, 0);
+                    SDL_SetRenderDrawColor(rendered, 0, 0, 255, 0);
                     SDL_RenderFillRect(rendered, &pixel);
                 }
             }
