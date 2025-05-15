@@ -59,24 +59,24 @@ void handleEvent(){
             case SDL_QUIT: cont = 0; break;
             case SDL_KEYDOWN:
                 switch(event.key.keysym.scancode){
-                    case SDL_SCANCODE_0: keypad[0] = 1; break;
                     case SDL_SCANCODE_1: keypad[1] = 1; break;
                     case SDL_SCANCODE_2: keypad[2] = 1; break;
                     case SDL_SCANCODE_3: keypad[3] = 1; break;
+                    case SDL_SCANCODE_4: keypad[12] = 1; break;
 
                     case SDL_SCANCODE_Q: keypad[4] = 1; break;
                     case SDL_SCANCODE_W: keypad[5] = 1; break;
                     case SDL_SCANCODE_E: keypad[6] = 1; break;
-                    case SDL_SCANCODE_R: keypad[7] = 1; break;
+                    case SDL_SCANCODE_R: keypad[13] = 1; break;
 
-                    case SDL_SCANCODE_A: keypad[8] = 1; break;
-                    case SDL_SCANCODE_S: keypad[9] = 1; break;
-                    case SDL_SCANCODE_D: keypad[10] = 1; break;
-                    case SDL_SCANCODE_F: keypad[11] = 1; break;
+                    case SDL_SCANCODE_A: keypad[7] = 1; break;
+                    case SDL_SCANCODE_S: keypad[8] = 1; break;
+                    case SDL_SCANCODE_D: keypad[9] = 1; break;
+                    case SDL_SCANCODE_F: keypad[14] = 1; break;
 
-                    case SDL_SCANCODE_Z: keypad[12] = 1; break;
-                    case SDL_SCANCODE_X: keypad[13] = 1; break;
-                    case SDL_SCANCODE_C: keypad[14] = 1; break;
+                    case SDL_SCANCODE_Z: keypad[10] = 1; break;
+                    case SDL_SCANCODE_X: keypad[0] = 1; break;
+                    case SDL_SCANCODE_C: keypad[11] = 1; break;
                     case SDL_SCANCODE_V: keypad[15] = 1; break;
 
                     default: break;
@@ -85,24 +85,24 @@ void handleEvent(){
 
             case SDL_KEYUP:
                 switch(event.key.keysym.scancode){
-                    case SDL_SCANCODE_0: keypad[0] = 0; break;
                     case SDL_SCANCODE_1: keypad[1] = 0; break;
                     case SDL_SCANCODE_2: keypad[2] = 0; break;
                     case SDL_SCANCODE_3: keypad[3] = 0; break;
+                    case SDL_SCANCODE_4: keypad[12] = 0; break;
 
                     case SDL_SCANCODE_Q: keypad[4] = 0; break;
                     case SDL_SCANCODE_W: keypad[5] = 0; break;
                     case SDL_SCANCODE_E: keypad[6] = 0; break;
-                    case SDL_SCANCODE_R: keypad[7] = 0; break;
+                    case SDL_SCANCODE_R: keypad[13] = 0; break;
 
-                    case SDL_SCANCODE_A: keypad[8] = 0; break;
-                    case SDL_SCANCODE_S: keypad[9] = 0; break;
-                    case SDL_SCANCODE_D: keypad[10] = 0; break;
-                    case SDL_SCANCODE_F: keypad[11] = 0; break;
+                    case SDL_SCANCODE_A: keypad[7] = 0; break;
+                    case SDL_SCANCODE_S: keypad[8] = 0; break;
+                    case SDL_SCANCODE_D: keypad[9] = 0; break;
+                    case SDL_SCANCODE_F: keypad[14] = 0; break;
 
-                    case SDL_SCANCODE_Z: keypad[12] = 0; break;
-                    case SDL_SCANCODE_X: keypad[13] = 0; break;
-                    case SDL_SCANCODE_C: keypad[14] = 0; break;
+                    case SDL_SCANCODE_Z: keypad[10] = 0; break;
+                    case SDL_SCANCODE_X: keypad[0] = 0; break;
+                    case SDL_SCANCODE_C: keypad[11] = 0; break;
                     case SDL_SCANCODE_V: keypad[15] = 0; break;
 
                     default: break;
@@ -277,7 +277,7 @@ void do_instruct(){
             break;
 
         case 0xE:
-            x = (op_code & 0x0F00);
+            x = (op_code & 0x0F00) >> 8;
             switch(op_code & 0x000F){
                 case 0x000E: // SKP Vx
                     if(keypad[V[x]] == 1) pc += 2;
@@ -393,10 +393,10 @@ int main(int argc, char** argv){
             for (int i = 0; i < 64 * 32; i++) {
                 SDL_Rect pixel = {.x = (i % 64) * (WINDOW_WIDTH / 64), .y = (i / 64) * (WINDOW_HEIGHT / 32), .w = WINDOW_WIDTH / 64, .h = WINDOW_HEIGHT / 32};
                 if (display[i]) {
-                    SDL_SetRenderDrawColor(rendered, 255, 255, 255, 255);
+                    SDL_SetRenderDrawColor(rendered, 0, 255, 0, 255);
                     SDL_RenderFillRect(rendered, &pixel);
                 } else {
-                    SDL_SetRenderDrawColor(rendered, 0, 0, 255, 0);
+                    SDL_SetRenderDrawColor(rendered, 0, 0, 0, 0);
                     SDL_RenderFillRect(rendered, &pixel);
                 }
             }
