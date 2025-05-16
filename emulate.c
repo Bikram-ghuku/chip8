@@ -121,7 +121,6 @@ void clear_screen(SDL_Renderer *rendrer){
 
 void do_instruct(){
     uint16_t op_code = ram[pc] << 8 | ram[pc + 1];
-    printf("0x%04X\n", op_code);
     uint8_t type = (op_code & 0xF000) >> 12;
     switch(type){
         case 0x0:
@@ -370,9 +369,7 @@ int main(int argc, char** argv){
     }
 
     size_t read_bytes = fread(ram + 0x200, 1, sizeof(ram) - 0x200, file);
-    for(int i = 0x200; i < read_bytes + 0x200; i += 1){
-        printf("memory[%03X] = %02X \n", i, ram[i]);
-    }
+    printf("Size of rom: %ld\n", read_bytes);
 
     for (int i = 0; i < sizeof(font); i++)  ram[i] = font[i];
 
@@ -383,7 +380,7 @@ int main(int argc, char** argv){
     SDL_Window* win = SDL_CreateWindow(strcat(argv[1], " - Chip8"), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
     SDL_Renderer* rendered = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
 
-    //clear_screen(rendered);
+    clear_screen(rendered);
 
     while(cont){
         for(int i = 0; i < 60; i++) do_instruct();
