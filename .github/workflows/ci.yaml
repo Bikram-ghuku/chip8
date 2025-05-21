@@ -31,17 +31,13 @@ jobs:
   windows-build:
     runs-on: windows-latest
     name: Create Windows Release
-    defaults:
-      run:
-        shell: bash
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         
       - name: Setup MinGW
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          platform: x64
+        run: |
+          choco install mingw
           
       - name: Download SDL2 for Windows
         run: |
