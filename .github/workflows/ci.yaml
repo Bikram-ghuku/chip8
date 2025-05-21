@@ -31,6 +31,9 @@ jobs:
   windows-build:
     runs-on: windows-latest
     name: Create Windows Release
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
