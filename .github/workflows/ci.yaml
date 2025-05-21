@@ -1,0 +1,85 @@
+name: Create Release Deployment
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    name: Create Linux Release
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev
+      
+      - name: Build Application
+        run: |
+          gcc emulate.c -lSDL2 -lSDL2main -o chip8
+      
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            chip8
+
+  windows-build:
+    runs-on: windows-latest
+    name: Create Windows Release
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup MinGW
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: x64
+          
+      - name: Download SDL2 for Windows
+        run: |
+          mkdir -p SDL2
+          Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.28.5/SDL2-devel-2.28.5-mingw.zip" -OutFile "SDL2.zip"
+          Expand-Archive -Path "SDL2.zip" -DestinationPath "SDL2"
+          
+      - name: Build Windows Application
+        run: |
+          $SDL_PATH = "$(Get-Location)\SDL2\SDL2-2.28.5\x86_64-w64-mingw32"
+          $Env:PATH += ";$SDL_PATH\bin" 
+          gcc emulate.c -I"$SDL_PATH\include" -L"$SDL_PATH\lib" -lSDL2main -lSDL2 -lmingw32 -mwindows -o chip8.exe
+          
+      - name: Copy DLLs
+        run: |
+          Copy-Item "SDL2\SDL2-2.28.5\x86_64-w64-mingw32\bin\SDL2.dll" -Destination .
+          
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            chip8.exe
+            SDL2.dll
+
+  create-release:
+    needs: [linux-build, windows-build]
+    runs-on: ubuntu-latest
+    name: Create GitHub Release
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: CHIP-8 Emulator Release
+          tag_name: v${{ github.run_number }}
+          files: |
+            linux-build/chip8
+            windows-build/chip8.exe
+            windows-build/SDL2.dll
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
