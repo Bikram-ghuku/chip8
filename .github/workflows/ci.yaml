@@ -42,12 +42,12 @@ jobs:
       - name: Download SDL2 for Windows
         run: |
           mkdir -p SDL2
-          Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.28.5/SDL2-devel-2.28.5-mingw.zip" -OutFile "SDL2.zip"
+          Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.32.6/SDL2-devel-2.32.6-mingw.zip" -OutFile "SDL2.zip"
           Expand-Archive -Path "SDL2.zip" -DestinationPath "SDL2"
           
       - name: Build Windows Application
         run: |
-          $SDL_PATH = "$(Get-Location)\SDL2\SDL2-2.28.5\x86_64-w64-mingw32"
+          $SDL_PATH = "$(Get-Location)\SDL2\SDL2-2.32.6\x86_64-w64-mingw32"
           $Env:PATH += ";$SDL_PATH\bin" 
           gcc emulate.c -I"$SDL_PATH\include" -L"$SDL_PATH\lib" -lSDL2main -lSDL2 -lmingw32 -mwindows -o chip8.exe
           
@@ -64,7 +64,7 @@ jobs:
             SDL2.dll
 
   create-release:
-    needs: [linux-build, windows-build]
+    needs: [linux-build]
     runs-on: ubuntu-latest
     name: Create GitHub Release
     steps:
