@@ -1,8 +1,12 @@
 name: Create Release Deployment
+
 on:
   push:
     branches: [ "master" ]
   workflow_dispatch:
+
+permissions:
+  contents: write  # Grants permission to create releases and upload assets
 
 jobs:
   linux-build:
@@ -25,8 +29,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-build
-          path: |
-            chip8
+          path: chip8
 
   create-release:
     needs: [linux-build]
@@ -41,7 +44,6 @@ jobs:
         with:
           name: CHIP-8 Emulator Release
           tag_name: v${{ github.run_number }}
-          files: |
-            linux-build/chip8
+          files: linux-build/chip8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
